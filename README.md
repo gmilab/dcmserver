@@ -3,7 +3,7 @@ Inspired by Logi Vidarsson's perl scripts and Wayne Lee's bash scripts for dcmtk
 
 
 ## Install
-```
+```bash
 # install dependencies
 sudo add-apt-repository universe  # dcmtk lives on the universe repo
 sudo apt install dcmtk python3-pip
@@ -19,7 +19,7 @@ sudo useradd dcmserver
 
 Edit the systemd unit files with the appropriate paths and parameters, then install them.
 
-```
+```bash
 sudo cp dicomserver.service dicomserver-mover.service /etc/systemd/system
 sudo systemctl daemon-reload
 
@@ -32,7 +32,7 @@ sudo systemctl start dicomserver-mover.service
 
 
 Then test from another computer
-```
+```bash
 cd [directory with dicom files]
 dcmsend [server] [port] ./
 ```
