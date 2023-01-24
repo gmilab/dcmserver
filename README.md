@@ -5,6 +5,7 @@ Inspired by Logi Vidarsson's perl scripts and Wayne Lee's bash scripts for dcmtk
 ## Install
 ```
 # install dependencies
+sudo add-apt-repository universe  # dcmtk lives on the universe repo
 sudo apt install dcmtk python3-pip
 
 # download repository and install python packages
