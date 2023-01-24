@@ -3,7 +3,10 @@ Description=DICOM Storage Class using storescp to receive DICOM images over the 
 
 [Service]
 User=dcmserver
+#                        this file is provided by the libdcmtk package
 Environment=DCMDICTPATH=/usr/share/libdcmtk14/dicom.dic
+
+#                                [your AEtitle]           [temporary directory]       [port]
 ExecStart=/usr/bin/storescp -aet IBRAHIMLAB_DCM_1 -pm -od /home/dcmserver/dcmtemp/ -v 4001
 
 [Install]
