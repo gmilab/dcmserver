@@ -1,0 +1,10 @@
+[Unit]
+Description=DICOM Storage Class using storescp to receive DICOM images over the network
+
+[Service]
+User=dcmserver
+Environment=DCMDICTPATH=/usr/share/libdcmtk14/dicom.dic
+ExecStart=/usr/bin/storescp -aet IBRAHIMLAB_DCM_1 -pm -od /home/dcmserver/dcmtemp/ -v 4001
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch storescp destination directory and move dcm files into final destination directory
+
+[Service]
+User=dcmserver
+ExecStart=/usr/bin/python /home/dcmserver/rename_dicom_v2301.py --watch /home/dcmserver/dcmtemp /d/gmi/r1/dicomserver/inbox
+
+[Install]
+WantedBy=multi-user.target
