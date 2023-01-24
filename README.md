@@ -6,11 +6,14 @@ Inspired by Logi Vidarsson's perl scripts and Wayne Lee's bash scripts for dcmtk
 ```
 # install dependencies
 sudo apt install dcmtk python3-pip
-sudo useradd dcmserver
 
+# download repository and install python packages
 git clone https://github.com/gmilab/dcmserver
 cd dcmserver
 pip install -U -r ./requirements.txt
+
+# create a user for the server
+sudo useradd dcmserver
 ```
 
 Edit the systemd unit files with the appropriate paths and parameters, then install them.
