@@ -1,4 +1,6 @@
 # Ibrahim Lab DICOM storage server
+Inspired by Logi Vidarsson's perl scripts and Wayne Lee's bash scripts for dcmtk
+
 
 ## Install
 ```
