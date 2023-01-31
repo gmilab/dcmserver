@@ -1,8 +1,13 @@
 [Unit]
 Description=DICOM Storage Class using storescp to receive DICOM images over the network
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 User=dcmserver
+Restart=always
+RestartSec=3
+
 #                        this file is provided by the libdcmtk package
 Environment=DCMDICTPATH=/usr/share/libdcmtk14/dicom.dic
 
