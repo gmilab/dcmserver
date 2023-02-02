@@ -14,6 +14,7 @@ from watchdog.events import FileSystemEventHandler
 import time
 
 find_non_alpha = re.compile('[^0-9a-zA-Z_\-]+')
+dest_permissions = 0o775
 
 
 class MyHandler(FileSystemEventHandler):
@@ -25,6 +26,24 @@ class MyHandler(FileSystemEventHandler):
         logging.info('File closed: {}'.format(event.src_path))
         run_one_file(event.src_path, self.dest_dir)
 
+def make_and_chmodown_dir_if_not_exist(dir_name):
+    if not os.path.exists(dir_name):
+        logging.info('Creating directory: {}'.format(dir_name))
+        os.makedirs(dir_name)
+        os.chmod(dir_name, dest_permissions)
+        shutil.chown(dir_name, user='dcmserver', group='gmidata_dicom')
+
+def get_acquisition_date(ds: pydicom.dataset.FileDataset) -> str:
+    if 'AcquisitionDate' in ds:
+        return ds.AcquisitionDate
+    elif 'AcquisitionDateTime' in ds:
+        return ds.AcquisitionDateTime[:8]
+    elif 'SeriesDate' in ds:
+        return ds.SeriesDate
+    elif 'StudyDate' in ds:
+        return ds.StudyDate
+    else:
+        return '00000000'
 
 def run_one_file(path: str, dest_dir: str):
     # read dicom header
@@ -38,33 +57,36 @@ def run_one_file(path: str, dest_dir: str):
         'snum': int(ds.SeriesNumber),
         'sdesc': alphanum(ds.SeriesDescription),
         'inum': int(ds.InstanceNumber),
+        'adate': alphanum(get_acquisition_date(ds)),
     }
 
     # construct destination directory
-    dir_name = os.path.join(dest_dir, 
-                            '{}+{}'.format(fields['id'], fields['name']),
-                            '{:03d}-{}'.format(fields['snum'], fields['sdesc']))
-    
-    if not os.path.exists(dir_name):
-        logging.info('Creating directory: {}'.format(dir_name))
-        os.makedirs(dir_name)
+    subj_dir = os.path.join(dest_dir, 
+                            '{}+{}'.format(fields['id'], fields['name']))
+    make_and_chmodown_dir_if_not_exist(subj_dir)
+
+
+    series_dir = os.path.join(subj_dir,
+                            '{}+{:03d}-{}'.format(fields['adate'], fields['snum'], fields['sdesc']))
+    make_and_chmodown_dir_if_not_exist(series_dir)
 
     # construct destination file name
-    file_name = os.path.join(dir_name,
+    dest_name = os.path.join(series_dir,
                                 '{:05d}.dcm'.format(fields['inum']))
     
     # ensure file doesn't already exist, or else append a number
     inc_num = 0
-    while os.path.exists(file_name) and inc_num < 9999:
+    while os.path.exists(dest_name) and inc_num < 9999:
         inc_num += 1
-        file_name = os.path.join(dir_name,
+        dest_name = os.path.join(series_dir,
                                     '{:05d}_{:04d}.dcm'.format(fields['inum'], inc_num))
     
     # move file
-    logging.info('Moving file: {} -> {}'.format(path, file_name))
-    shutil.move(path, file_name)
+    logging.info('Moving file: {} -> {}'.format(path, dest_name))
+    shutil.move(path, dest_name)
+    os.chmod(dest_name, dest_permissions)
 
-    return file_name
+    return dest_name
 
 # main
 if __name__ == '__main__':
