@@ -24,7 +24,10 @@ class MyHandler(FileSystemEventHandler):
 
     def on_closed(self, event):
         logging.info('File closed: {}'.format(event.src_path))
-        run_one_file(event.src_path, self.dest_dir)
+        try:
+            run_one_file(event.src_path, self.dest_dir)
+        except Exception as ex:
+            logging.error('Error on file {}'.format(event.src_path), exc_info=ex)
 
 def make_and_chmodown_dir_if_not_exist(dir_name):
     if not os.path.exists(dir_name):
@@ -52,11 +55,11 @@ def run_one_file(path: str, dest_dir: str):
     # get and format needed fields
     alphanum = lambda v: find_non_alpha.sub('_', str(v).strip())
     fields = {
-        'id': alphanum(ds.PatientID),
-        'name': alphanum(ds.PatientName),
-        'snum': int(ds.SeriesNumber),
-        'sdesc': alphanum(ds.SeriesDescription),
-        'inum': int(ds.InstanceNumber),
+        'id': alphanum(ds.PatientID) if hasattr(ds, 'PatientID') else 'NOID',
+        'name': alphanum(ds.PatientName) if hasattr(ds, 'PatientName') else 'NONAME',
+        'snum': int(ds.SeriesNumber) if hasattr(ds, 'SeriesNumber') else 0,
+        'sdesc': alphanum(ds.SeriesDescription) if hasattr(ds, 'SeriesDescription') else 'UNKNOWN',
+        'inum': int(ds.InstanceNumber) if hasattr(ds, 'InstanceNumber') else 0,
         'adate': alphanum(get_acquisition_date(ds)),
     }
 
@@ -83,7 +86,8 @@ def run_one_file(path: str, dest_dir: str):
     
     # move file
     logging.info('Moving file: {} -> {}'.format(path, dest_name))
-    shutil.move(path, dest_name)
+    # shutil.move(path, dest_name)
+    os.system('/bin/mv "{}" "{}"'.format(path, dest_name))
     os.chmod(dest_name, dest_permissions)
 
     return dest_name
@@ -102,6 +106,7 @@ if __name__ == '__main__':
     if args.verbose:
         logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
+
     if args.watch:
         # watch for new files
         logging.info('Watching for new files in: {}'.format(args.source_dir))
@@ -109,15 +114,19 @@ if __name__ == '__main__':
         observer.schedule(MyHandler(dest_dir=args.dest_dir), path=args.source_dir, recursive=False)
         observer.start()
 
-        try:
+        try:            
             # process all files in the directory right now
             files = [os.path.join(args.source_dir, f) for f in os.listdir(args.source_dir) if os.path.isfile(os.path.join(args.source_dir, f))]
             for f in files:
-                run_one_file(f, args.dest_dir)
+                try:
+                    run_one_file(f, args.dest_dir)
+                except Exception as ex:
+                    logging.error('Error on file {}'.format(f), exc_info=ex)
 
             # keep running
             while True:
                 time.sleep(5)
+
         finally:
             observer.stop()
             observer.join()
