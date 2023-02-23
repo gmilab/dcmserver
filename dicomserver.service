@@ -11,8 +11,13 @@ RestartSec=3
 #                        this file is provided by the libdcmtk package
 Environment=DCMDICTPATH=/usr/share/libdcmtk14/dicom.dic
 
-#                                                      [your AEtitle]       [temporary directory]    [port]
-ExecStart=/usr/bin/storescp -q --unique-filenames -aet IBRAHIMLAB_DCM_1 -od /home/dcmserver/dcmtemp/ 4001
+ExecStart=/usr/bin/storescp -q --unique-filenames --bit-preserving   \
+#                           ↓↓↓ your AEtitle ↓↓↓                     \
+                            -aet IBRAHIMLAB_DCM_1                    \
+#                           ↓↓↓ temporary directory ↓↓↓              \
+                            -od /home/dcmserver/dcmtemp/             \
+#                           ↓↓↓ port ↓↓↓                             \
+                            4001
 
 [Install]
 WantedBy=multi-user.target
